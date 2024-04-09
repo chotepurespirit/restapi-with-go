@@ -23,12 +23,12 @@ func main() {
 	http.HandleFunc("/users", func(w http.ResponseWriter, req *http.Request) {
 		if req.Method == "GET" {
 			log.Println("GET")
-			//เราไม่สามารถที่จะใส่ w.Write(users) ตรงๆ ได้เพราะมันเป็น type slice ไม่สามารถแปลงเป็น byte ได้
-			//ดังนั้นเราจะแปลง struct ให้เป็น json ก่อน
-			//โดยเราจะต้อง import package encoding/json มาใช้งาน
-			//json.Marshal จะทำการแปลง struct ให้เป็น json และ return ออกมาเป็น byte
+//เราไม่สามารถที่จะใส่ w.Write(users) ตรงๆ ได้เพราะมันเป็น type slice ไม่สามารถแปลงเป็น byte ได้
+//ดังนั้นเราจะแปลง struct ให้เป็น json ก่อน
+//โดยเราจะต้อง import package encoding/json มาใช้งาน
+//json.Marshal จะทำการแปลง struct ให้เป็น json และ return ออกมาเป็น byte
 			b, err := json.Marshal(users)
-			//ทุก err ต้อง return 200 ถ้าไม่มี err จะ return 500
+//ทุก err ต้อง return 200 ถ้าไม่มี err จะ return 500
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Write([]byte(err.Error()))
