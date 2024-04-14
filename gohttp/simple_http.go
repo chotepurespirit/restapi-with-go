@@ -62,7 +62,7 @@ func main() {
 		}
 
 	})
-	log.Println("Starting server on :2565")
+	log.Println("Starting server on :2565") //แสดงข้อความว่า server กำลังทำงานอยู่ที่ port 2565
 	log.Fatal(http.ListenAndServe(":2565", nil)) //คำสั่ง ListenAndServe จะทำงานแบบค้างเอาไว้ จนกว่าจะมีการปิด server
-	log.Println("bye bye")
+	log.Println("bye bye") //แสดงข้อความว่า server ถูกปิด
 }

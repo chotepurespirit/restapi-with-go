@@ -16,7 +16,7 @@ type User struct {
 }
 
 var users = []User{
-	{ID: 1, Name: "AnuchitO", Age: 18},
+	{ID: 1, Name: "Chote", Age: 20},
 }
 
 func usersHandler(w http.ResponseWriter, req *http.Request) {
@@ -61,13 +61,13 @@ func healthHandler(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte("OK"))
 }
 
-//func logMiddleware(next http.HandlerFunc) http.HandlerFunc {
-//	return func(w http.ResponseWriter, req *http.Request) {
-//		start := time.Now()
-//		next.ServeHTTP(w, req)
-//		log.Printf("Server http middleware: %s %s %s %s", req.RemoteAddr, req.Method, req.URL, time.Since(start))
-//	}
-//}
+func logMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		log.Printf("Server http middleware: %s %s %s %s", r.RemoteAddr, r.Method, r.URL, time.Since(start))
+	})
+}
 
 type Logger struct {
 	Handler http.Handler
@@ -79,13 +79,30 @@ func (l Logger) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	log.Printf("Server http middleware: %s %s %s %s", req.RemoteAddr, req.Method, req.URL, time.Since(start))
 }
 
+func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		u, p, ok := req.BasicAuth()
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`can't parse the basic auth`))
+			return 
+		}
+		if u != "apidesign" || p != "45678" {
+			w.WriteHeader(http.StatusUnauthorized) //จะใช้เป็น 401 หรือ http.StatusUnauthorized ก็ได้
+			w.Write([]byte(`username or password is incorrect`))
+			return
+		}
+		fmt.Println("Auth passed.")
+		next(w, req) //ถ้าผ่าน auth ให้ไปทำงานต่อที่ handler ถัดไป
+	}
+}
+
 func main() {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/users", AuthMiddleware(usersHandler))
+	mux.HandleFunc("/health", AuthMiddleware(healthHandler))
 
-	mux.HandleFunc("/users", usersHandler)
-	mux.HandleFunc("/health", healthHandler)
-
-	logMux := Logger{Handler: mux}
+	logMux := Logger{mux}
 
 	srv := http.Server{
 		Addr:    ":2565",
